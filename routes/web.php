@@ -15,3 +15,5 @@ Route::add(['GET', 'POST'], '/discipline/add', [Controller\Site::class, 'addDisc
     ->middleware('auth');
 Route::add(['GET', 'POST'], '/assign-discipline', [Controller\Site::class, 'assignDiscipline'])
     ->middleware('auth');
+Route::add('GET', '/staff/list', [Controller\Site::class, 'listStaff'])
+    ->middleware('auth');

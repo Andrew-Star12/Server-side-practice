@@ -124,5 +124,11 @@ class Site
         ]);
     }
 
+    public function listStaff(): string
+    {
+        $staff = Staff::with('department')->get(); // Загружаем сотрудников вместе с кафедрами
+        return new View('site.staff-list', ['staff' => $staff]);
+    }
+
 
 }
