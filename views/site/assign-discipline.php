@@ -1,27 +1,29 @@
-<h2>Прикрепить сотрудника к дисциплине</h2>
+<div class="assign-wrapper">
+    <h2 class="assign-title">Прикрепить сотрудника к дисциплине</h2>
 
-<?php if (!empty($message)) : ?>
-    <p><?= $message ?></p>
-<?php endif; ?>
+    <?php if (!empty($message)) : ?>
+        <div class="assign-message"><?= $message ?></div>
+    <?php endif; ?>
 
-<form method="post">
-    <label>Сотрудник:</label><br>
-    <select name="staff_id" required>
-        <option value="">Выберите сотрудника</option>
-        <?php foreach ($staff as $s): ?>
-            <option value="<?= $s->id ?>">
-                <?= $s->lastname ?> <?= $s->firstname ?> <?= $s->middlename ?>
-            </option>
-        <?php endforeach; ?>
-    </select><br><br>
+    <form method="post" class="assign-form">
+        <label for="staff_id">Сотрудник:</label>
+        <select id="staff_id" name="staff_id" required>
+            <option value="">Выберите сотрудника</option>
+            <?php foreach ($staff as $s): ?>
+                <option value="<?= $s->id ?>">
+                    <?= htmlspecialchars($s->lastname . ' ' . $s->firstname . ' ' . $s->middlename) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
 
-    <label>Дисциплина:</label><br>
-    <select name="discipline_id" required>
-        <option value="">Выберите дисциплину</option>
-        <?php foreach ($disciplines as $d): ?>
-            <option value="<?= $d->id ?>"><?= $d->name ?></option>
-        <?php endforeach; ?>
-    </select><br><br>
+        <label for="discipline_id">Дисциплина:</label>
+        <select id="discipline_id" name="discipline_id" required>
+            <option value="">Выберите дисциплину</option>
+            <?php foreach ($disciplines as $d): ?>
+                <option value="<?= $d->id ?>"><?= htmlspecialchars($d->name) ?></option>
+            <?php endforeach; ?>
+        </select>
 
-    <button type="submit">Прикрепить</button>
-</form>
+        <button type="submit">Прикрепить</button>
+    </form>
+</div>

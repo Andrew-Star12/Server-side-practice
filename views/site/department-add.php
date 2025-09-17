@@ -1,10 +1,12 @@
-<h2>Добавить кафедру</h2>
+<div class="department-wrapper">
+    <h2 class="department-title">Добавить кафедру</h2>
 
-<?php if (!empty($message)) : ?>
-    <p><?= $message ?></p>
-<?php endif; ?>
+    <?php if (!empty($message)) : ?>
+        <div class="department-message"><?= htmlspecialchars($message) ?></div>
+    <?php endif; ?>
 
-<form method="post">
-    <input type="text" name="name" placeholder="Название кафедры" required><br>
-    <button type="submit">Добавить</button>
-</form>
+    <form method="post" class="department-form">
+        <input type="text" name="name" placeholder="Название кафедры" required>
+        <button type="submit">Добавить</button>
+    </form>
+</div>

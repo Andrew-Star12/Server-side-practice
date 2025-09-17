@@ -23,12 +23,22 @@ class Site
     }
     public function signup(Request $request): string
     {
-        if ($request->method === 'POST' && User::create($request->all()))
-        {
-            app()->route->redirect('/login');
+        if ($request->method === 'POST') {
+            $data = $request->all();
+
+            // Хэшируем пароль через md5
+            if (!empty($data['password'])) {
+                $data['password'] = md5($data['password']);
+            }
+
+            if (User::create($data)) {
+                app()->route->redirect('/login');
+            }
         }
+
         return new View('site.signup');
     }
+
     public function login(Request $request): string
     {
 //Если просто обращение к странице, то отобразить форму
@@ -48,19 +58,31 @@ class Site
     }
     public function addStaff(Request $request): string
     {
+        // Получаем список кафедр для формы
+        $departments = Department::all();
+
         if ($request->method === 'POST') {
             $data = $request->all();
 
-            // Валидация может быть добавлена здесь
             if (Staff::create($data)) {
-                return new View('site.staff-add', ['message' => 'Сотрудник успешно добавлен']);
+                return new View('site.staff-add', [
+                    'message' => 'Сотрудник успешно добавлен',
+                    'departments' => $departments,
+                ]);
             }
 
-            return new View('site.staff-add', ['message' => 'Ошибка при добавлении сотрудника']);
+            return new View('site.staff-add', [
+                'message' => 'Ошибка при добавлении сотрудника',
+                'departments' => $departments,
+            ]);
         }
 
-        return new View('site.staff-add'); // Показываем форму, если GET
+        // GET-запрос: просто показываем форму с кафедрами
+        return new View('site.staff-add', [
+            'departments' => $departments,
+        ]);
     }
+
     public function addDepartment(Request $request): string
     {
         if ($request->method === 'POST') {
@@ -124,11 +146,69 @@ class Site
         ]);
     }
 
-    public function listStaff(): string
+    public function listStaff(\Src\Request $request): string
     {
-        $staff = Staff::with('department')->get(); // Загружаем сотрудников вместе с кафедрами
-        return new View('site.staff-list', ['staff' => $staff]);
+        $query = Staff::with('department');
+
+        // Если в запросе есть department_id, фильтруем
+        if ($request->get('department_id')) {
+            $query->where('department_id', $request->get('department_id'));
+        }
+
+        $staff = $query->get();
+        $departments = Department::all(); // Список всех кафедр для формы фильтрации
+
+        return new View('site.staff-list', [
+            'staff' => $staff,
+            'departments' => $departments,
+            'selectedDepartment' => $request->get('department_id') // передаём выбранную кафедру в шаблон
+        ]);
     }
+    public function listDisciplines(\Src\Request $request): string
+    {
+        $departmentId = $request->get('department_id');
+
+        // Запрос дисциплин, читаемых сотрудниками (по кафедре, если указана)
+        $query = \Model\Discipline::with(['staff']);
+
+        if ($departmentId) {
+            $query->whereHas('staff', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        $disciplines = $query->get();
+        $departments = \Model\Department::all();
+
+        return new \Src\View('site.discipline-list', [
+            'disciplines' => $disciplines,
+            'departments' => $departments,
+            'selectedDepartmentId' => $departmentId
+        ]);
+    }
+
+    public function addDeanStaff(Request $request): string
+    {
+        if ($request->method === 'POST') {
+            $data = $request->all();
+
+            if (!empty($data['login']) && !empty($data['password'])) {
+                $data['role'] = 'dean_staff';
+                $data['password'] = md5($data['password']);
+
+                if (User::create($data)) {
+                    return new View('site.deanstaff-add', ['message' => 'Сотрудник деканата добавлен']);
+                }
+            }
+
+            return new View('site.deanstaff-add', ['message' => 'Ошибка при добавлении']);
+        }
+
+        return new View('site.deanstaff-add');
+    }
+
+
+
 
 
 }

@@ -1,10 +1,12 @@
-<h2>Добавить дисциплину</h2>
+<div class="discipline-wrapper">
+    <h2 class="discipline-title">Добавить дисциплину</h2>
 
-<?php if (!empty($message)) : ?>
-    <p><?= $message ?></p>
-<?php endif; ?>
+    <?php if (!empty($message)) : ?>
+        <div class="discipline-message"><?= htmlspecialchars($message) ?></div>
+    <?php endif; ?>
 
-<form method="post">
-    <input type="text" name="name" placeholder="Название дисциплины" required><br>
-    <button type="submit">Добавить</button>
-</form>
+    <form method="post" class="discipline-form">
+        <input type="text" name="name" placeholder="Название дисциплины" required>
+        <button type="submit">Добавить</button>
+    </form>
+</div>
