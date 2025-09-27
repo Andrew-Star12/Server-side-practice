@@ -5,6 +5,9 @@
 <?php if (!app()->auth::check()): ?>
     <form method="post" class="auth-form">
         <h2 class="auth-title">Авторизация</h2>
+
+        <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
+
         <label>
             Логин
             <input type="text" name="login" required>
@@ -18,3 +21,5 @@
 <?php else: ?>
     <p class="auth-welcome">Вы вошли как <strong><?= app()->auth->user()->name ?></strong></p>
 <?php endif; ?>
+
+

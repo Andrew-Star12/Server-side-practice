@@ -9,6 +9,7 @@ use Model\Staff;
 use Model\Department;
 use Model\Discipline;
 use Model\DisciplineStaff;
+use Src\Validator\Validator;
 class Site
 {
     public function index(): string
@@ -206,8 +207,6 @@ class Site
 
         return new View('site.deanstaff-add');
     }
-
-
 
 
 

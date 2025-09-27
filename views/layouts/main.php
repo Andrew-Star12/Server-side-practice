@@ -8,55 +8,13 @@
     <link rel="stylesheet" href="/pop-it-mvc/public/css/style.css">
     <title>Pop it MVC</title>
     <style>
-        /* Базовая стилизация */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
 
-        header {
-            background-color: #2c3e50;
-            padding: 10px 20px;
-        }
 
-        nav {
-            display: flex;
-            gap: 15px;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        main {
-            padding: 20px;
-        }
-
-        .button {
-            display: inline-block;
-            margin: 5px 10px 5px 0;
-            padding: 10px 15px;
-            background-color: #3498db;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-
-        .button:hover {
-            background-color: #2980b9;
-        }
-
-        .user-info {
-            margin-left: auto;
-            color: #ecf0f1;
-        }
     </style>
 </head>
 <body>
-<header>
+<aside>
+    <h2>Меню</h2>
     <nav>
         <a href="<?= app()->route->getUrl('/hello') ?>">Главная</a>
 
@@ -83,7 +41,7 @@
             <a href="<?= app()->route->getUrl('/logout') ?>">Выход (<?= $user->name ?>)</a>
         <?php endif; ?>
     </nav>
-</header>
+</aside>
 
 <main>
     <?= $content ?? '' ?>

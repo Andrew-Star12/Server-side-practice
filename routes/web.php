@@ -18,7 +18,7 @@ Route::add(['GET', 'POST'], '/deanstaff/add', [Controller\Site::class, 'addDeanS
     ->middleware('auth', 'role:admin');
 
 // ==============================
-// Роуты только для DEAN_STAFF
+// Роуты только для DEAN_STAFF + ADMIN
 // ==============================
 Route::add(['GET', 'POST'], '/staff/add', [Controller\Site::class, 'addStaff'])
     ->middleware('auth', 'role:admin,dean_staff');

@@ -6,7 +6,9 @@
     <?php endif; ?>
 
     <form method="post" class="department-form">
-        <input type="text" name="name" placeholder="Название кафедры" required>
+        <div class="form-group">
+            <input type="text" name="name" placeholder="Название кафедры" required>
+        </div>
         <button type="submit">Добавить</button>
     </form>
 </div>
