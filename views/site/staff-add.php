@@ -2,6 +2,9 @@
     <h2 class="employee-title">Добавить нового сотрудника</h2>
 
     <form method="post" class="employee-form">
+        <!-- CSRF-токен -->
+        <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
+
         <div class="form-group">
             <input type="text" name="lastname" placeholder="Фамилия" required>
         </div>

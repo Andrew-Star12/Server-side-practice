@@ -6,6 +6,9 @@
     <?php endif; ?>
 
     <form method="post" class="department-form">
+        <!-- CSRF-токен -->
+        <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
+
         <div class="form-group">
             <input type="text" name="name" placeholder="Название кафедры" required>
         </div>

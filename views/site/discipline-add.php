@@ -6,6 +6,9 @@
     <?php endif; ?>
 
     <form method="post" class="discipline-form">
+        <!-- CSRF-токен -->
+        <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
+
         <input type="text" name="name" placeholder="Название дисциплины" required>
         <button type="submit">Добавить</button>
     </form>

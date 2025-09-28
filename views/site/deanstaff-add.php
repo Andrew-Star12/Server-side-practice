@@ -6,6 +6,9 @@
     <?php endif; ?>
 
     <form method="POST" class="staff-add-form">
+        <!-- CSRF-токен -->
+        <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
+
         <label for="name">Имя:</label>
         <input id="name" type="text" name="name" required>
 

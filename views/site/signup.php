@@ -16,10 +16,13 @@
         <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
 
         <div class="form-group">
-            <input type="text" name="name" placeholder="Имя" required>
+            <input type="text" name="name" placeholder="Имя" required
+                   value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
         </div>
+
         <div class="form-group">
-            <input type="text" name="login" placeholder="Логин" required>
+            <input type="text" name="login" placeholder="Логин" required
+                   value="<?= htmlspecialchars($_POST['login'] ?? '') ?>">
         </div>
 
         <!-- Пароль с кнопкой "глазик" -->
@@ -47,3 +50,4 @@
         passwordField.setAttribute("type", type);
     }
 </script>
+

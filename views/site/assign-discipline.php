@@ -2,10 +2,13 @@
     <h2 class="assign-title">Прикрепить сотрудника к дисциплине</h2>
 
     <?php if (!empty($message)) : ?>
-        <div class="assign-message"><?= $message ?></div>
+        <div class="assign-message"><?= htmlspecialchars($message) ?></div>
     <?php endif; ?>
 
     <form method="post" class="assign-form">
+        <!-- CSRF-токен -->
+        <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
+
         <label for="staff_id">Сотрудник:</label>
         <select id="staff_id" name="staff_id" required>
             <option value="">Выберите сотрудника</option>
