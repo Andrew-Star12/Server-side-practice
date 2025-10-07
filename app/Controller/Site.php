@@ -10,6 +10,8 @@ use Model\Department;
 use Model\Discipline;
 use Model\DisciplineStaff;
 use Src\Validator\Validator;
+use Src\Validator\SimpleValidator;
+use Src\Validator\ImageValidator;
 class Site
 {
     public function index(): string
@@ -29,14 +31,11 @@ class Site
         if ($request->method === 'POST') {
             $data = $request->all();
 
-            // Валидация
-            $validator = new Validator($data, [
-                'name'     => ['required'],
-                'login'    => ['required', 'unique:users,login'],
-                'password' => ['required']
-            ], [
-                'required' => 'Поле :field пусто',
-                'unique'   => 'Поле :field должно быть уникально'
+            // ✅ Новый валидатор
+            $validator = new SimpleValidator($data, [
+                'name'     => ['not_empty'],
+                'login'    => ['not_empty', 'unique:users,login'],
+                'password' => ['not_empty', 'min:5']
             ]);
 
             if ($validator->fails()) {
@@ -60,16 +59,36 @@ class Site
 
     public function login(Request $request): string
     {
-//Если просто обращение к странице, то отобразить форму
         if ($request->method === 'GET') {
             return new View('site.login');
         }
-//Если удалось аутентифицировать пользователя, то редирект
-        if (Auth::attempt($request->all())) {
+
+        $data = $request->all();
+
+        // Валидация полей логина и пароля
+        $validator = new \Src\Validator\SimpleValidator($data, [
+            'login'    => ['not_empty'],
+            'password' => ['not_empty']
+        ]);
+
+        if ($validator->fails()) {
+            return new View('site.login', [
+                'errors' => $validator->errors(),
+                'old'    => $data
+            ]);
+        }
+
+        // Проверка авторизации
+        if (\Src\Auth\Auth::attempt($data)) {
             app()->route->redirect('/hello');
         }
-        return new View('site.login', ['message' => 'Неправильные логинили пароль']);
+
+        return new View('site.login', [
+            'message' => 'Неправильные логин или пароль',
+            'old'     => $data
+        ]);
     }
+
     public function logout(): void
     {
         Auth::logout();
@@ -77,12 +96,58 @@ class Site
     }
     public function addStaff(Request $request): string
     {
-        // Получаем список кафедр для формы
         $departments = Department::all();
 
         if ($request->method === 'POST') {
             $data = $request->all();
 
+            // --- Правила для текстовых полей ---
+            $rules = [
+                'lastname'      => ['not_empty', 'min:2'],
+                'firstname'     => ['not_empty', 'min:2'],
+                'gender'        => ['not_empty'],
+                'birthdate'     => ['not_empty'],
+                'position'      => ['not_empty'],
+                'department_id' => ['not_empty'],
+            ];
+
+            $validator = new SimpleValidator($data, $rules);
+            if ($validator->fails()) {
+                return new View('site.staff-add', [
+                    'departments' => $departments,
+                    'errors' => $validator->errors(),
+                    'old' => $data
+                ]);
+            }
+
+            // --- Проверка фото через ImageValidator ---
+            if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $imageValidator = new \Src\Validator\ImageValidator($_FILES['photo']);
+
+                if ($imageValidator->fails()) {
+                    return new View('site.staff-add', [
+                        'departments' => $departments,
+                        'errors' => ['photo' => $imageValidator->errors()],
+                        'old' => $data
+                    ]);
+                }
+
+                // ✅ Сохраняем файл
+                $uploadDir = dirname(__DIR__, 2) . '/public/uploads/staff/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
+                $newFileName = uniqid('staff_', true) . '.' . $ext;
+                $filePath = $uploadDir . $newFileName;
+
+                if (move_uploaded_file($_FILES['photo']['tmp_name'], $filePath)) {
+                    $data['photo'] = 'uploads/staff/' . $newFileName;
+                }
+            }
+
+            // --- Сохранение ---
             if (Staff::create($data)) {
                 return new View('site.staff-add', [
                     'message' => 'Сотрудник успешно добавлен',
@@ -96,7 +161,6 @@ class Site
             ]);
         }
 
-        // GET-запрос: просто показываем форму с кафедрами
         return new View('site.staff-add', [
             'departments' => $departments,
         ]);
@@ -107,11 +171,31 @@ class Site
         if ($request->method === 'POST') {
             $data = $request->all();
 
-            if (!empty($data['name']) && Department::create(['name' => $data['name']])) {
-                return new View('site.department-add', ['message' => 'Кафедра успешно добавлена']);
+            // 🔸 Правила валидации
+            $rules = [
+                'name' => ['not_empty', 'min:2']
+            ];
+
+            // Создаём валидатор
+            $validator = new \Src\Validator\SimpleValidator($data, $rules);
+
+            if ($validator->fails()) {
+                return new View('site.department-add', [
+                    'errors' => $validator->errors(),
+                    'old' => $data
+                ]);
             }
 
-            return new View('site.department-add', ['message' => 'Ошибка при добавлении кафедры']);
+            // Если валидация успешна — сохраняем в БД
+            if (Department::create(['name' => $data['name']])) {
+                return new View('site.department-add', [
+                    'message' => 'Кафедра успешно добавлена'
+                ]);
+            }
+
+            return new View('site.department-add', [
+                'message' => 'Ошибка при добавлении кафедры'
+            ]);
         }
 
         return new View('site.department-add');
@@ -122,15 +206,36 @@ class Site
         if ($request->method === 'POST') {
             $data = $request->all();
 
-            if (!empty($data['name']) && Discipline::create(['name' => $data['name']])) {
-                return new View('site.discipline-add', ['message' => 'Дисциплина успешно добавлена']);
+            // Правила валидации
+            $rules = [
+                'name' => ['not_empty', 'min:2']
+            ];
+
+            // Валидатор
+            $validator = new \Src\Validator\SimpleValidator($data, $rules);
+
+            if ($validator->fails()) {
+                return new View('site.discipline-add', [
+                    'errors' => $validator->errors(),
+                    'old'    => $data
+                ]);
             }
 
-            return new View('site.discipline-add', ['message' => 'Ошибка при добавлении дисциплины']);
+            // Сохранение в БД
+            if (Discipline::create(['name' => $data['name']])) {
+                return new View('site.discipline-add', [
+                    'message' => 'Дисциплина успешно добавлена'
+                ]);
+            }
+
+            return new View('site.discipline-add', [
+                'message' => 'Ошибка при добавлении дисциплины'
+            ]);
         }
 
         return new View('site.discipline-add');
     }
+
     public function assignDiscipline(Request $request): string
     {
         $staff = Staff::all();
@@ -169,20 +274,33 @@ class Site
     {
         $query = Staff::with('department');
 
-        // Если в запросе есть department_id, фильтруем
+        // Фильтр по кафедре
         if ($request->get('department_id')) {
             $query->where('department_id', $request->get('department_id'));
         }
 
+        // Поиск по ФИО и должности
+        if ($request->get('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('lastname', 'like', "%$search%")
+                    ->orWhere('firstname', 'like', "%$search%")
+                    ->orWhere('middlename', 'like', "%$search%")
+                    ->orWhere('position', 'like', "%$search%");
+            });
+        }
+
         $staff = $query->get();
-        $departments = Department::all(); // Список всех кафедр для формы фильтрации
+        $departments = Department::all();
 
         return new View('site.staff-list', [
             'staff' => $staff,
             'departments' => $departments,
-            'selectedDepartment' => $request->get('department_id') // передаём выбранную кафедру в шаблон
+            'selectedDepartment' => $request->get('department_id'),
+            'search' => $request->get('search')
         ]);
     }
+
     public function listDisciplines(\Src\Request $request): string
     {
         $departmentId = $request->get('department_id');
@@ -211,20 +329,46 @@ class Site
         if ($request->method === 'POST') {
             $data = $request->all();
 
-            if (!empty($data['login']) && !empty($data['password'])) {
-                $data['role'] = 'dean_staff';
-                $data['password'] = md5($data['password']);
+            // Правила валидации
+            $rules = [
+                'name'     => ['not_empty'],
+                'login'    => ['not_empty', 'unique:users,login'],
+                'password' => ['not_empty', 'min:6'],
+            ];
 
-                if (User::create($data)) {
-                    return new View('site.deanstaff-add', ['message' => 'Сотрудник деканата добавлен']);
-                }
+            //Валидатор
+            $validator = new SimpleValidator($data, $rules, [
+                'name'     => 'Имя',
+                'login'    => 'Логин',
+                'password' => 'Пароль',
+            ]);
+
+            if ($validator->fails()) {
+                return new View('site.deanstaff-add', [
+                    'errors' => $validator->errors(),
+                    'old'    => $data
+                ]);
             }
 
-            return new View('site.deanstaff-add', ['message' => 'Ошибка при добавлении']);
+            // Подготовка данных
+            $data['role'] = 'dean_staff';
+            $data['password'] = md5($data['password']);
+
+            // Сохранение
+            if (User::create($data)) {
+                return new View('site.deanstaff-add', [
+                    'message' => 'Сотрудник деканата успешно добавлен'
+                ]);
+            }
+
+            return new View('site.deanstaff-add', [
+                'message' => 'Ошибка при добавлении сотрудника'
+            ]);
         }
 
         return new View('site.deanstaff-add');
     }
+
 
 
 

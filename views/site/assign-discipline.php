@@ -10,7 +10,7 @@
         <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
 
         <label for="staff_id">Сотрудник:</label>
-        <select id="staff_id" name="staff_id" required>
+        <select id="staff_id" name="staff_id" >
             <option value="">Выберите сотрудника</option>
             <?php foreach ($staff as $s): ?>
                 <option value="<?= $s->id ?>">
@@ -20,7 +20,7 @@
         </select>
 
         <label for="discipline_id">Дисциплина:</label>
-        <select id="discipline_id" name="discipline_id" required>
+        <select id="discipline_id" name="discipline_id" >
             <option value="">Выберите дисциплину</option>
             <?php foreach ($disciplines as $d): ?>
                 <option value="<?= $d->id ?>"><?= htmlspecialchars($d->name) ?></option>

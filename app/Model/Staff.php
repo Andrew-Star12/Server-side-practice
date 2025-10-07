@@ -17,6 +17,7 @@ class Staff extends Model
         'address',
         'position',
         'department_id',
+        'photo',
     ];
 
     public function department()

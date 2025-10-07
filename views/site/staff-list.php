@@ -12,14 +12,22 @@
                 </option>
             <?php endforeach; ?>
         </select>
+
+        <label for="search">Поиск:</label>
+        <input type="text" name="search" id="search"
+               value="<?= htmlspecialchars($_GET['search'] ?? '') ?>"
+               placeholder="Фамилия, имя или должность">
+
         <button type="submit">Показать</button>
     </form>
+
 
     <!-- Таблица сотрудников -->
     <?php if (!empty($staff)): ?>
         <table class="staff-table">
             <thead>
             <tr>
+                <th>Фото</th>
                 <th>Фамилия</th>
                 <th>Имя</th>
                 <th>Отчество</th>
@@ -30,6 +38,13 @@
             <tbody>
             <?php foreach ($staff as $person): ?>
                 <tr>
+                    <td>
+                        <?php if (!empty($person->photo)): ?>
+                            <img src="/pop-it-mvc/<?= htmlspecialchars($person->photo) ?>" alt="Фото" width="50" height="50" style="object-fit: cover; border-radius: 50%;">
+                        <?php else: ?>
+                            —
+                        <?php endif; ?>
+                    </td>
                     <td><?= htmlspecialchars($person->lastname) ?></td>
                     <td><?= htmlspecialchars($person->firstname) ?></td>
                     <td><?= htmlspecialchars($person->middlename) ?></td>
@@ -43,4 +58,3 @@
         <p class="no-staff">Сотрудники не найдены.</p>
     <?php endif; ?>
 </div>
-

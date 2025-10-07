@@ -1,33 +1,35 @@
-<?php if (!empty($errors)): ?>
-    <div class="form-errors">
-        <ul>
-            <?php foreach ($errors as $fieldErrors): ?>
-                <?php foreach ($fieldErrors as $error): ?>
-                    <li><?= htmlspecialchars($error) ?></li>
-                <?php endforeach; ?>
-            <?php endforeach; ?>
-        </ul>
-    </div>
-<?php endif; ?>
+
 
 <div class="register-wrapper">
     <h2 class="register-title">Регистрация нового пользователя</h2>
+
+    <?php if (!empty($errors)): ?>
+        <div class="form-errors">
+            <ul>
+                <?php foreach ($errors as $fieldErrors): ?>
+                    <?php foreach ($fieldErrors as $error): ?>
+                        <li><?= htmlspecialchars($error) ?></li>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
+
     <form method="post" class="register-form">
         <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
 
         <div class="form-group">
-            <input type="text" name="name" placeholder="Имя" required
-                   value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
+            <input type="text" name="name" placeholder="Имя"
+                   value="<?= htmlspecialchars($old['name'] ?? '') ?>">
         </div>
 
         <div class="form-group">
-            <input type="text" name="login" placeholder="Логин" required
-                   value="<?= htmlspecialchars($_POST['login'] ?? '') ?>">
+            <input type="text" name="login" placeholder="Логин"
+                   value="<?= htmlspecialchars($old['login'] ?? '') ?>">
         </div>
 
-        <!-- Пароль с кнопкой "глазик" -->
         <div class="form-group password-group">
-            <input type="password" name="password" id="password" placeholder="Пароль" required>
+            <input type="password" name="password" id="password" placeholder="Пароль" >
             <span class="toggle-password" onclick="togglePassword()">👁️</span>
         </div>
 
@@ -35,13 +37,13 @@
             <button type="submit">Зарегистрироваться</button>
         </div>
 
-        <!-- Ссылка на вход -->
         <p class="switch-auth">
             Уже есть аккаунт?
             <a href="<?= app()->route->getUrl('/login') ?>">Войти</a>
         </p>
     </form>
 </div>
+
 
 <script>
     function togglePassword() {
@@ -50,4 +52,3 @@
         passwordField.setAttribute("type", type);
     }
 </script>
-

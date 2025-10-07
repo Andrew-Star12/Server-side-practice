@@ -9,7 +9,18 @@
         <!-- CSRF-токен -->
         <input type="hidden" name="csrf_token" value="<?= app()->auth::generateCSRF() ?>">
 
-        <input type="text" name="name" placeholder="Название дисциплины" required>
+        <div class="form-group">
+            <input
+                    type="text"
+                    name="name"
+                    placeholder="Название дисциплины"
+                    value="<?= htmlspecialchars($old['name'] ?? '') ?>"
+            >
+            <?php if (!empty($errors['name'])): ?>
+                <span class="error-text"><?= htmlspecialchars($errors['name'][0]) ?></span>
+            <?php endif; ?>
+        </div>
+
         <button type="submit">Добавить</button>
     </form>
 </div>
