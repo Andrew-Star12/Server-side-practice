@@ -10,6 +10,7 @@ use Model\Department;
 use Model\Discipline;
 use Model\DisciplineStaff;
 use Src\Validator\Validator;
+use Src\Validator\PasswordValidator;
 use Src\Validator\SimpleValidator;
 use Src\Validator\ImageValidator;
 class Site
@@ -25,29 +26,34 @@ class Site
         return new View('site.hello', ['message' => 'hello working']);
     }
 
-
     public function signup(Request $request): string
     {
         if ($request->method === 'POST') {
             $data = $request->all();
 
-            // ✅ Новый валидатор
+            // ✅ Проверка обычных правил
             $validator = new SimpleValidator($data, [
                 'name'     => ['not_empty'],
                 'login'    => ['not_empty', 'unique:users,login'],
-                'password' => ['not_empty', 'min:5']
+                'password' => ['not_empty'],
             ]);
 
-            if ($validator->fails()) {
+            $passwordValidator = new PasswordValidator($data['password'] ?? '');
+
+            if ($validator->fails() || $passwordValidator->fails()) {
+                $errors = $validator->errors();
+                if ($passwordValidator->fails()) {
+                    $errors['password'] = array_merge($errors['password'] ?? [], $passwordValidator->errors());
+                }
+
                 return new View('site.signup', [
-                    'errors' => $validator->errors(),
+                    'errors' => $errors,
                     'old'    => $data
                 ]);
             }
 
-            // Хэшируем пароль
+            // Хэшируем и сохраняем
             $data['password'] = md5($data['password']);
-
             if (User::create($data)) {
                 app()->route->redirect('/login');
             }
@@ -55,6 +61,7 @@ class Site
 
         return new View('site.signup');
     }
+
 
 
     public function login(Request $request): string
