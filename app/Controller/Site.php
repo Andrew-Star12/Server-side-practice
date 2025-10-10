@@ -13,6 +13,7 @@ use Src\Validator\Validator;
 use Src\Validator\PasswordValidator;
 use Src\Validator\SimpleValidator;
 use Src\Validator\ImageValidator;
+use FileUploader\FileUploader;
 class Site
 {
     public function index(): string
@@ -31,7 +32,7 @@ class Site
         if ($request->method === 'POST') {
             $data = $request->all();
 
-            // ✅ Проверка обычных правил
+            // Проверка обычных правил
             $validator = new SimpleValidator($data, [
                 'name'     => ['not_empty'],
                 'login'    => ['not_empty', 'unique:users,login'],
@@ -122,48 +123,47 @@ class Site
             if ($validator->fails()) {
                 return new View('site.staff-add', [
                     'departments' => $departments,
-                    'errors' => $validator->errors(),
-                    'old' => $data
+                    'errors'      => $validator->errors(),
+                    'old'         => $data
                 ]);
             }
 
-            // --- Проверка фото через ImageValidator ---
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
-                $imageValidator = new \Src\Validator\ImageValidator($_FILES['photo']);
+            // --- Проверка корректности даты ---
+            $dateValidator = new \Src\Validator\DateValidator($data['birthdate']);
+            if ($dateValidator->fails()) {
+                return new View('site.staff-add', [
+                    'departments' => $departments,
+                    'errors'      => ['birthdate' => $dateValidator->errors()],
+                    'old'         => $data
+                ]);
+            }
 
-                if ($imageValidator->fails()) {
+            if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $uploader = new FileUploader($_FILES['photo']);
+                $filename = $uploader->save(dirname(__DIR__, 2) . '/public/uploads/staff');
+
+                if ($filename) {
+                    $data['photo'] = 'uploads/staff/' . $filename;
+                } else {
                     return new View('site.staff-add', [
                         'departments' => $departments,
-                        'errors' => ['photo' => $imageValidator->errors()],
+                        'errors' => ['photo' => $uploader->errors()],
                         'old' => $data
                     ]);
                 }
-
-                // ✅ Сохраняем файл
-                $uploadDir = dirname(__DIR__, 2) . '/public/uploads/staff/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
-
-                $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
-                $newFileName = uniqid('staff_', true) . '.' . $ext;
-                $filePath = $uploadDir . $newFileName;
-
-                if (move_uploaded_file($_FILES['photo']['tmp_name'], $filePath)) {
-                    $data['photo'] = 'uploads/staff/' . $newFileName;
-                }
             }
+
 
             // --- Сохранение ---
             if (Staff::create($data)) {
                 return new View('site.staff-add', [
-                    'message' => 'Сотрудник успешно добавлен',
+                    'message'     => 'Сотрудник успешно добавлен',
                     'departments' => $departments,
                 ]);
             }
 
             return new View('site.staff-add', [
-                'message' => 'Ошибка при добавлении сотрудника',
+                'message'     => 'Ошибка при добавлении сотрудника',
                 'departments' => $departments,
             ]);
         }
@@ -173,12 +173,13 @@ class Site
         ]);
     }
 
+
     public function addDepartment(Request $request): string
     {
         if ($request->method === 'POST') {
             $data = $request->all();
 
-            // 🔸 Правила валидации
+            // Правила валидации
             $rules = [
                 'name' => ['not_empty', 'min:2']
             ];
