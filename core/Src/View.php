@@ -54,4 +54,21 @@ return require($this->getPathToMain());
     {
         return $this->render($this->view, $this->data);
     }
+    public function getData(): array
+    {
+        return $this->data;
+    }
+
+    public function getView(): string
+    {
+        return $this->view;
+    }
+    public function toJSON(array $data = [], int $code = 200): void
+    {
+        header_remove();
+        header("Content-Type: application/json; charset=utf-8");
+        http_response_code($code);
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        exit();
+    }
 }

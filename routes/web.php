@@ -23,6 +23,9 @@ Route::add(['GET', 'POST'], '/deanstaff/add', [Controller\Site::class, 'addDeanS
 Route::add(['GET', 'POST'], '/staff/add', [Controller\Site::class, 'addStaff'])
     ->middleware('auth', 'role:admin,dean_staff');
 
+Route::add(['GET', 'POST'], '/staff/edit/{id}', [Controller\Site::class, 'editStaff'])
+    ->middleware('auth', 'role:admin,dean_staff');
+
 Route::add(['GET', 'POST'], '/department/add', [Controller\Site::class, 'addDepartment'])
     ->middleware('auth', 'role:admin,dean_staff');
 

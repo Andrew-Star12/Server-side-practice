@@ -33,6 +33,7 @@
                 <th>Отчество</th>
                 <th>Должность</th>
                 <th>Кафедра</th>
+                <th>Действия</th> <!-- 👈 добавили -->
             </tr>
             </thead>
             <tbody>
@@ -50,6 +51,9 @@
                     <td><?= htmlspecialchars($person->middlename) ?></td>
                     <td><?= htmlspecialchars($person->position) ?></td>
                     <td><?= $person->department ? htmlspecialchars($person->department->name) : '—' ?></td>
+                    <td>
+                        <a href="/pop-it-mvc/staff/edit/<?= $person->id ?>" class="edit-btn">Редактировать</a>
+                    </td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

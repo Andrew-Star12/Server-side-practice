@@ -57,6 +57,7 @@ class Site
             $data['password'] = md5($data['password']);
             if (User::create($data)) {
                 app()->route->redirect('/login');
+                return false;
             }
         }
 
@@ -172,6 +173,86 @@ class Site
             'departments' => $departments,
         ]);
     }
+
+    public function editStaff($id, Request $request): string
+    {
+        $staff = Staff::find($id);
+        if (!$staff) {
+            return new View('errors.404', ['message' => 'Сотрудник не найден']);
+        }
+
+        $departments = Department::all();
+
+        if ($request->method === 'POST') {
+            $data = $request->all();
+
+            // --- Валидация полей ---
+            $rules = [
+                'lastname'      => ['not_empty', 'min:2'],
+                'firstname'     => ['not_empty', 'min:2'],
+                'gender'        => ['not_empty'],
+                'birthdate'     => ['not_empty'],
+                'position'      => ['not_empty'],
+                'department_id' => ['not_empty'],
+            ];
+
+            $validator = new SimpleValidator($data, $rules);
+            if ($validator->fails()) {
+                return new View('site.staff-edit', [
+                    'staff'       => $staff,
+                    'departments' => $departments,
+                    'errors'      => $validator->errors(),
+                    'old'         => $data
+                ]);
+            }
+
+            // --- Проверка корректности даты ---
+            $dateValidator = new \Src\Validator\DateValidator($data['birthdate']);
+            if ($dateValidator->fails()) {
+                return new View('site.staff-edit', [
+                    'staff'       => $staff,
+                    'departments' => $departments,
+                    'errors'      => ['birthdate' => $dateValidator->errors()],
+                    'old'         => $data
+                ]);
+            }
+
+            // --- Проверка и обновление фото ---
+            if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $uploader = new \FileUploader\FileUploader($_FILES['photo']);
+                $filename = $uploader->save(dirname(__DIR__, 2) . '/public/uploads/staff');
+
+                if ($filename) {
+                    $data['photo'] = 'uploads/staff/' . $filename;
+                } else {
+                    return new View('site.staff-edit', [
+                        'staff'       => $staff,
+                        'departments' => $departments,
+                        'errors'      => ['photo' => $uploader->errors()],
+                    ]);
+                }
+            } else {
+                // 👇 если файл не загружен, оставляем старое фото
+                $data['photo'] = $staff->photo;
+            }
+
+
+            // --- Обновление данных ---
+            $staff->update($data);
+
+            return new View('site.staff-edit', [
+                'staff'       => $staff->fresh(),
+                'departments' => $departments,
+                'message'     => 'Данные сотрудника успешно обновлены'
+            ]);
+        }
+
+        return new View('site.staff-edit', [
+            'staff'       => $staff,
+            'departments' => $departments,
+        ]);
+    }
+
 
 
     public function addDepartment(Request $request): string
