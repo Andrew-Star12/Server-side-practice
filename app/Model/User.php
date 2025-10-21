@@ -11,7 +11,8 @@ class User extends Model implements IdentityInterface
         'name',
         'login',
         'password',
-        'role'
+        'role',
+        'api_token'
     ];
 
 //Выборка пользователя по первичному ключу

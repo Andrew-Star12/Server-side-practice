@@ -1,44 +1,45 @@
 <?php
 use Src\Route;
 
-// Доступен всем залогиненным
-Route::add('GET', '/hello', [Controller\Site::class, 'hello'])
+// ==============================
+// Общедоступные (требуется авторизация)
+// ==============================
+Route::add('GET', '/hello', [Controller\SiteController::class, 'hello'])
     ->middleware('auth');
 
-// Регистрация и вход доступны всем
-Route::add(['GET', 'POST'], '/signup', [Controller\Site::class, 'signup']);
-Route::add(['GET', 'POST'], '/login', [Controller\Site::class, 'login']);
-Route::add('GET', '/logout', [Controller\Site::class, 'logout']);
+// ==============================
+// Аутентификация
+// ==============================
+Route::add(['GET', 'POST'], '/signup', [Controller\AuthController::class, 'signup']);
+Route::add(['GET', 'POST'], '/login', [Controller\AuthController::class, 'login']);
+Route::add('GET', '/logout', [Controller\AuthController::class, 'logout']);
 
-
-// =========================
-// Роуты только для ADMIN
-// =========================
-Route::add(['GET', 'POST'], '/deanstaff/add', [Controller\Site::class, 'addDeanStaff'])
+// ==============================
+// ADMIN
+// ==============================
+Route::add(['GET', 'POST'], '/deanstaff/add', [Controller\AuthController::class, 'addDeanStaff'])
     ->middleware('auth', 'role:admin');
 
 // ==============================
-// Роуты только для DEAN_STAFF + ADMIN
+// DEAN_STAFF + ADMIN
 // ==============================
-Route::add(['GET', 'POST'], '/staff/add', [Controller\Site::class, 'addStaff'])
+Route::add(['GET', 'POST'], '/staff/add', [Controller\StaffController::class, 'addStaff'])
     ->middleware('auth', 'role:admin,dean_staff');
 
-Route::add(['GET', 'POST'], '/staff/edit/{id}', [Controller\Site::class, 'editStaff'])
+Route::add(['GET', 'POST'], '/staff/edit/{id}', [Controller\StaffController::class, 'editStaff'])
     ->middleware('auth', 'role:admin,dean_staff');
 
-Route::add(['GET', 'POST'], '/department/add', [Controller\Site::class, 'addDepartment'])
+Route::add(['GET', 'POST'], '/department/add', [Controller\DepartmentController::class, 'addDepartment'])
     ->middleware('auth', 'role:admin,dean_staff');
 
-Route::add(['GET', 'POST'], '/discipline/add', [Controller\Site::class, 'addDiscipline'])
+Route::add(['GET', 'POST'], '/discipline/add', [Controller\DisciplineController::class, 'addDiscipline'])
     ->middleware('auth', 'role:admin,dean_staff');
 
-Route::add(['GET', 'POST'], '/assign-discipline', [Controller\Site::class, 'assignDiscipline'])
+Route::add(['GET', 'POST'], '/assign-discipline', [Controller\DisciplineController::class, 'assignDiscipline'])
     ->middleware('auth', 'role:admin,dean_staff');
 
-Route::add('GET', '/staff/list', [Controller\Site::class, 'listStaff'])
+Route::add('GET', '/staff/list', [Controller\StaffController::class, 'listStaff'])
     ->middleware('auth', 'role:admin,dean_staff');
 
-Route::add('GET', '/discipline/list', [Controller\Site::class, 'listDisciplines'])
+Route::add('GET', '/discipline/list', [Controller\DisciplineController::class, 'listDisciplines'])
     ->middleware('auth', 'role:admin,dean_staff');
-
-

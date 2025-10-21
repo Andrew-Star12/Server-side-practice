@@ -8,6 +8,7 @@ return [
     'routeMiddleware' => [
         'auth' => \Middlewares\AuthMiddleware::class,
         'role' => \Middlewares\RoleMiddleware::class,
+        'apiAuth' => Middlewares\ApiAuthMiddleware::class,
     ],
     'validators' => [
 

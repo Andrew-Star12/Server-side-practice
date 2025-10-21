@@ -18,7 +18,7 @@ class Api
         (new View())->toJSON($request->all());
     }
 
-    // 🔐 Авторизация и выдача API токена
+    // вторизация и выдача API токена
     public function login(Request $request): void
     {
         $data = $request->all();
@@ -50,4 +50,21 @@ class Api
             ]
         ]);
     }
+    public function staffList(Request $request): void
+    {
+        $user = $request->user; // Пользователь из middleware
+
+        // показываем всех сотрудников
+        $staff = \Model\Staff::with('department')->get()->toArray();
+
+        (new View())->toJSON([
+            'authorized_user' => [
+                'id' => $user->id,
+                'login' => $user->login,
+                'role' => $user->role,
+            ],
+            'staff' => $staff
+        ]);
+    }
+
 }
